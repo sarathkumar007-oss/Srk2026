@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sarath | Client Engagement Command App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+
+<style>
+body { font-family: Arial; background:#f4f6f8; margin:0; padding:15px; }
+header { background:#1f4e78; color:#fff; padding:15px; text-align:center; border-radius:8px; }
+section { background:#fff; margin-top:15px; padding:15px; border-radius:8px; }
+label { font-weight:bold; display:block; margin-top:10px; }
+input, select, textarea { width:100%; padding:8px; margin-top:5px; }
+button { background:#1f4e78; color:#fff; padding:12px; border:none; width:100%; margin-top:15px; }
+button.secondary { background:#28a745; }
+canvas { max-width:100%; margin-top:15px; }
+table { width:100%; border-collapse:collapse; margin-top:15px; font-size:12px; }
+th, td { border:1px solid #ccc; padding:6px; }
+th { background:#1f4e78; color:white; }
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>SARATH – CLIENT ENGAGEMENT COMMAND APP</h2>
+  <small>Offline • Installable • Excel-Synced</small>
+</header>
+
+<section>
+<h3>New Client Visit</h3>
+<label>Date</label><input type="date" id="date">
+<label>Site Name</label><input id="site">
+<label>Client / Company</label><input id="client">
+<label>Contract</label><input id="contract">
+<label>Visit Type</label>
+<select id="type"><option>Routine</option><option>Complaint</option><option>Review</option><option>New Requirement</option></select>
+<label>Status</label>
+<select id="status"><option>Open</option><option>In Progress</option><option>Closed</option></select>
+<label>Risk</label>
+<select id="risk"><option>Low</option><option>Medium</option><option>High</option></select>
+<label>Client Satisfaction (1-5)</label><input type="number" min="1" max="5" id="satisfaction">
+<label>Remarks</label><textarea id="remarks"></textarea>
+
+<button onclick="saveVisit()">Save Visit</button>
+</section>
+
+<section>
+<h3>Dashboard</h3>
+<canvas id="statusChart"></canvas>
+<canvas id="riskChart"></canvas>
+</section>
+
+<section>
+<h3>Visit Log</h3>
+<button class="secondary" onclick="downloadCSV()">Download Excel CSV</button>
+<table>
+<thead>
+<tr>
+<th>Date</th><th>Site</th><th>Client</th><th>Contract</th>
+<th>Type</th><th>Status</th><th>Risk</th><th>Satisfaction</th><th>Remarks</th>
+</tr>
+</thead>
+<tbody id="log"></tbody>
+</table>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let visits = JSON.parse(localStorage.getItem("visits")) || [];
+
+function saveVisit(){
+  visits.push([
+    date.value, site.value, client.value, contract.value,
+    type.value, status.value, risk.value, satisfaction.value, remarks.value
+  ]);
+  localStorage.setItem("visits", JSON.stringify(visits));
+  render();
+}
+
+function render(){
+  document.getElementById("log").innerHTML =
+    visits.map(v=>"<tr>"+v.map(c=>`<td>${c}</td>`).join("")+"</tr>").join("");
+  drawCharts();
+}
+render();
+
+function drawCharts(){
+  let statusCount={}, riskCount={};
+  visits.forEach(v=>{
+    statusCount[v[5]]=(statusCount[v[5]]||0)+1;
+    riskCount[v[6]]=(riskCount[v[6]]||0)+1;
+  });
+
+  new Chart(statusChart,{type:'pie',data:{labels:Object.keys(statusCount),datasets:[{data:Object.values(statusCount)}]}});
+  new Chart(riskChart,{type:'bar',data:{labels:Object.keys(riskCount),datasets:[{data:Object.values(riskCount)}]}});
+}
+
+function downloadCSV(){
+  let csv = "Visit Date,Site,Client,Contract,Visit Type,Status,Risk,Client Satisfaction,Remarks\n";
+  visits.forEach(v=>csv+=v.map(x=>`"${x}"`).join(",")+"\n");
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download="Sarath_Client_Engagement_Command_Data.csv";
+  a.click();
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+
+</body>
+</html>
