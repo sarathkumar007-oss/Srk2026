@@ -1,0 +1,9 @@
+{
+  "name": "Sarath Client Engagement App",
+  "short_name": "Sarath CRM",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#1f4e78",
+  "theme_color": "#1f4e78",
+  "icons": []
+}
